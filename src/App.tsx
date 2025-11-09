@@ -1,7 +1,48 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
+const profileImg = "https://cdn.builder.io/api/v1/image/assets%2Fa0d90af5fbda4595aa44ba0e53998fda%2Fb22331202ce74e5abe829e1590dfc7ad?format=webp&width=800";
+const carVideo = "/car.mp4";
+import "./styles/thankyou-video.css";
 
 export default function App() {
   const [open, setOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const audioOnRef = useRef(false);
+
+  useEffect(() => {
+    (window as any).startCarAudio = async () => {
+      const v = videoRef.current;
+      if (!v) return;
+      v.muted = false;
+      try { await v.play(); } catch (e) { console.warn('startCarAudio play failed', e); }
+      audioOnRef.current = true;
+    };
+
+    (window as any).stopCarAudio = () => {
+      const v = videoRef.current;
+      if (!v) return;
+      v.muted = true;
+      try { v.pause(); } catch (e) { console.warn('stopCarAudio pause failed', e); }
+      audioOnRef.current = false;
+    };
+
+    (window as any).toggleCarAudio = async () => {
+      if (audioOnRef.current) {
+        (window as any).stopCarAudio();
+      } else {
+        await (window as any).startCarAudio();
+      }
+    };
+
+    // Do NOT auto-start or unmute the video on first interaction.
+    // User must explicitly press play; keeping start/stop functions available for manual control.
+
+    return () => {
+      delete (window as any).startCarAudio;
+      delete (window as any).stopCarAudio;
+      delete (window as any).toggleCarAudio;
+    };
+  }, []);
+
   return (
     <>
       {/* Fixed Navigation */}
@@ -43,7 +84,7 @@ export default function App() {
           <div className="profile-image-container">
             {/* Add your profile image here */}
             <div className="profile-placeholder">
-              <img src="/profile.jpg" alt="Pranav Sood profile photo" />
+              <img src={profileImg} alt="Pranav Sood profile photo" />
               <div className="ring-light"></div>
             </div>
           </div>
@@ -141,9 +182,8 @@ export default function App() {
         <div className="showcase-gallery">
           {/* Add your video showcase here */}
           <div className="video-box">
-            <div className="video-placeholder">
-              <p>Video 1</p>
-              <span>Your creative work goes here</span>
+            <div className="video-wrapper">
+              <video ref={videoRef} className="video-media" src={carVideo} controls preload="metadata" muted></video>
             </div>
           </div>
           
@@ -210,9 +250,13 @@ export default function App() {
       <section id="contact" className="thankyou-section">
         <div className="thankyou-content">
           <div className="thankyou-image-container">
-            {/* Add your thank-you image here */}
             <div className="thankyou-image-placeholder">
-              <div className="shimmer-effect"></div>
+              <video
+                className="thankyou-video"
+                src="https://cdn.builder.io/o/assets%2Fa0d90af5fbda4595aa44ba0e53998fda%2Fb678ad45ad8c4e539dcf1eccb330a8fa?alt=media&token=b3656c2d-2dc1-440a-b674-9c65f0392500&apiKey=a0d90af5fbda4595aa44ba0e53998fda"
+                muted
+                loop
+                              />
             </div>
           </div>
           
